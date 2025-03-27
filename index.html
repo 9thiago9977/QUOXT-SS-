@@ -1,1096 +1,988 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QUOXT SS - Jogo pimpol Bolas Giratórias</title>
-  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Arial', sans-serif;
-      background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1);
-      color: #ffffff;
-      line-height: 1.6;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 10px;
-      background: rgba(255, 255, 255, 0.1);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      border-radius: 10px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 0;
-      border-bottom: 2px solid #ffeb3b;
-    }
-    h1 {
-      font-size: 20px;
-      color: #ffeb3b;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    }
-    .connect-btn-header {
-      padding: 6px 12px;
-      background-color: #ff4081;
-      color: #ffffff;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-      transition: background-color 0.3s, transform 0.2s;
-    }
-    .connect-btn-header:hover {
-      background-color: #f50057;
-      transform: scale(1.05);
-    }
-    .main-content {
-      display: flex;
-      flex: 1;
-      margin-top: 10px;
-    }
-    .game-container {
-      flex: 3;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .ball-area {
-      flex: 1;
-      padding-right: 10px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-      width: 300px;
-      height: 300px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 50%;
-      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2);
-    }
-    .ball-container {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      animation: spin 10s linear infinite;
-    }
-    .ball {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      position: absolute;
-      transition: background-color 0.5s ease;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-    }
-    .center-ball {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 2;
-      display: none;
-      transition: background-color 0.5s ease;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    .bottom-buttons {
-      display: flex;
-      gap: 5px;
-      padding-top: 10px;
-    }
-    .bottom-btn {
-      padding: 4px 8px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 10px;
-      transition: background-color 0.3s, transform 0.2s;
-    }
-    .sacar-btn {
-      background-color: #ffeb3b;
-      color: #333;
-    }
-    .sacar-btn:hover {
-      background-color: #fdd835;
-      transform: scale(1.05);
-    }
-    .deposito-btn {
-      background-color: #00e676;
-      color: #333;
-    }
-    .deposito-btn:hover {
-      background-color: #00c853;
-      transform: scale(1.05);
-    }
-    .demo-btn {
-      background-color: #ab47bc;
-      color: #ffffff;
-    }
-    .demo-btn:hover {
-      background-color: #8e24aa;
-      transform: scale(1.05);
-    }
-    .demo-btn.active {
-      background-color: #e91e63;
-    }
-    .controls {
-      width: 250px;
-      background: rgba(255, 255, 255, 0.15);
-      padding: 10px;
-      border-radius: 4px;
-      border: 1px solid #ffeb3b;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .controls p {
-      margin: 5px 0;
-      font-size: 12px;
-      color: #fff;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-    }
-    #saldo { color: #ffeb3b; }
-    #valorAposta {
-      padding: 6px;
-      background: rgba(255, 255, 255, 0.3);
-      border: 1px solid #ffeb3b;
-      border-radius: 4px;
-      color: #333;
-      width: 100%;
-      font-size: 12px;
-    }
-    .color-options {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .color-btn {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      border: none;
-      cursor: pointer;
-      transition: transform 0.2s;
-      box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
-    }
-    .color-btn:hover {
-      transform: scale(1.1);
-    }
-    .color-btn.selected {
-      border: 2px solid #ffeb3b;
-    }
-    .bet-button {
-      padding: 8px 12px;
-      background-color: #ff5722;
-      color: #ffffff;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: background-color 0.3s, transform 0.2s;
-    }
-    .bet-button:hover {
-      background-color: #e64a19;
-      transform: scale(1.05);
-    }
-    #resultado, #tempoRestante, #usuariosAtivos {
-      margin: 5px 0;
-      font-size: 12px;
-      color: #fff;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-    }
-    #usuariosAtivos span {
-      color: #ffeb3b;
-    }
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-    }
-    .modal-content {
-      background: linear-gradient(135deg, #ff4081, #ab47bc);
-      margin: 15% auto;
-      padding: 15px;
-      width: 300px;
-      border-radius: 8px;
-      color: #ffffff;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-    }
-    .close {
-      float: right;
-      cursor: pointer;
-      font-size: 20px;
-      color: #ffeb3b;
-    }
-    .close:hover { color: #fff; }
-    input[type="text"], input[type="number"], textarea {
-      width: 100%;
-      padding: 8px;
-      margin: 5px 0;
-      background: rgba(255, 255, 255, 0.3);
-      border: 1px solid #ffeb3b;
-      border-radius: 4px;
-      color: #333;
-      font-size: 12px;
-    }
-    .support-icon {
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
-      width: 40px;
-      height: 40px;
-      background-color: #ffeb3b;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-      transition: background-color 0.3s, transform 0.2s;
-    }
-    .support-icon:hover {
-      background-color: #fdd835;
-      transform: scale(1.1);
-    }
-    .support-icon::before {
-      content: "?";
-      font-size: 20px;
-      color: #333;
-    }
-    .history {
-      margin-top: 10px;
-      background: rgba(255, 255, 255, 0.15);
-      padding: 10px;
-      border-radius: 4px;
-      border: 1px solid #ffeb3b;
-    }
-    .history h2 {
-      font-size: 16px;
-      color: #ffeb3b;
-      margin-bottom: 5px;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-    }
-    .history-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-    }
-    .history-table th, .history-table td {
-      padding: 8px;
-      text-align: left;
-      border-bottom: 1px solid #ffeb3b;
-    }
-    .history-table th {
-      color: #ffeb3b;
-    }
-    .history-table td {
-      color: #fff;
-    }
-    .history-table tr:last-child td {
-      border-bottom: none;
-    }
-    .affiliate-section {
-      margin-top: 10px;
-      background: rgba(255, 255, 255, 0.15);
-      padding: 10px;
-      border-radius: 4px;
-      border: 1px solid #ffeb3b;
-    }
-    .affiliate-section h2 {
-      font-size: 16px;
-      color: #ffeb3b;
-      margin-bottom: 5px;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-    }
-    .affiliate-btn {
-      padding: 4px 8px;
-      background-color: #ffeb3b;
-      color: #333;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 10px;
-      transition: background-color 0.3s, transform 0.2s;
-    }
-    .affiliate-btn:hover {
-      background-color: #fdd835;
-      transform: scale(1.05);
-    }
-    #affiliateCode, #affiliateStats {
-      font-size: 12px;
-      margin-top: 5px;
-      color: #fff;
-    }
-    .saques-window {
-      background: rgba(255, 255, 255, 0.15);
-      padding: 8px;
-      border-radius: 4px;
-      border: 1px solid #ffeb3b;
-      margin-top: 10px;
-      width: 100%;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-    }
-    .saques-window h2 {
-      font-size: 12px;
-      color: #ffeb3b;
-      margin-bottom: 6px;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-    }
-    .saques-list {
-      max-height: 100px;
-      overflow-y: auto;
-    }
-    .saque-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 4px 0;
-      font-size: 10px;
-      border-bottom: 1px solid #ffeb3b;
-      color: #fff;
-    }
-    .saque-item:last-child {
-      border-bottom: none;
-    }
-    .saque-valor {
-      color: #ffeb3b;
-    }
-    /* Estilo para o controle de volume e botão de play/pause */
-    #volumeControl {
-      width: 100%;
-      -webkit-appearance: none;
-      height: 5px;
-      background: #ffeb3b;
-      outline: none;
-      border-radius: 5px;
-      margin-top: 5px;
-    }
-    #volumeControl::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 15px;
-      height: 15px;
-      background: #ff4081;
-      cursor: pointer;
-      border-radius: 50%;
-      border: 2px solid #fff;
-    }
-    #volumeControl::-moz-range-thumb {
-      width: 15px;
-      height: 15px;
-      background: #ff4081;
-      cursor: pointer;
-      border-radius: 50%;
-      border: 2px solid #fff;
-    }
-    #playPauseBtn {
-      padding: 4px 8px;
-      background-color: #00e676;
-      color: #333;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 10px;
-      transition: background-color 0.3s, transform 0.2s;
-    }
-    #playPauseBtn:hover {
-      background-color: #00c853;
-      transform: scale(1.05);
-    }
-  </style>
-</head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUOXT SS - Apostas</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; background-color: #1c2526; color: #ffffff; line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 10px; background: #141a1f; min-height: 100vh; display: flex; flex-direction: column; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #2e2e2e; }
+        h1 { font-size: 20px; color: #f0b90b; }
+        .crypto-nav { display: flex; gap: 5px; }
+        .crypto-btn { padding: 6px 12px; background-color: #2e2e2e; color: #ffffff; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; transition: background-color 0.3s; }
+        .crypto-btn.active { background-color: #f0b90b; color: #141a1f; }
+        .crypto-btn:hover:not(.active) { background-color: #3e3e3e; }
+        .connect-btn-header { padding: 6px 12px; background-color: #f0b90b; color: #141a1f; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; transition: background-color 0.3s; }
+        .connect-btn-header:hover { background-color: #ffcc00; }
+        .main-content { display: flex; flex: 1; margin-top: 10px; }
+        .chart-container { flex: 3; display: flex; flex-direction: column; }
+        .chart-area { flex: 1; padding-right: 10px; }
+        canvas { width: 100% !important; height: 500px !important; display: none; background: #1c2526; border: 1px solid #2e2e2e; border-radius: 4px; }
+        #bnbChart { display: block; }
+        .bottom-buttons { display: flex; gap: 5px; padding-top: 10px; }
+        .bottom-btn { padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 10px; transition: background-color 0.3s; }
+        .sacar-btn { background-color: #f0b90b; color: #141a1f; }
+        .sacar-btn:hover { background-color: #ffcc00; }
+        .deposito-btn { background-color: #f0b90b; color: #141a1f; }
+        .deposito-btn:hover { background-color: #ffcc00; }
+        .demo-btn { background-color: #2e2e2e; color: #ffffff; }
+        .demo-btn:hover { background-color: #3e3e3e; }
+        .demo-btn.active { background-color: #00c087; }
+        .controls { width: 250px; background: #1c2526; padding: 10px; border-radius: 4px; border: 1px solid #2e2e2e; display: flex; flex-direction: column; gap: 8px; }
+        .controls p { margin: 5px 0; font-size: 12px; }
+        .wallet-info { background: #141a1f; padding: 8px; border-radius: 4px; border: 1px solid #3e3e3e; transition: all 0.3s ease; }
+        #carteiraInfo { color: #f0b90b; font-size: 12px; }
+        #saldoReal, #saldoDemo { color: #ffffff; font-size: 12px; margin-top: 5px; }
+        #saldoReal span, #saldoDemo span { color: #f0b90b; }
+        #valorAposta, #tempoExpiracao { padding: 6px; background: #141a1f; border: 1px solid #3e3e3e; border-radius: 4px; color: #ffffff; width: 100%; font-size: 12px; }
+        .bet-buttons { display: flex; flex-direction: column; gap: 8px; }
+        .bet-btn { padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; transition: background-color 0.3s; }
+        .up { background-color: #00c087; color: #ffffff; }
+        .up:hover { background-color: #00e0a0; }
+        .down { background-color: #ff4d4d; color: #ffffff; }
+        .down:hover { background-color: #ff6666; }
+        #resultado, #tempoRestante, #usuáriosAtivos { margin: 5px 0; font-size: 12px; }
+        #usuáriosAtivos span { color: #f0b90b; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); }
+        .modal-content { background: #1c2526; margin: 15% auto; padding: 15px; width: 300px; border-radius: 4px; border: 1px solid #2e2e2e; color: #ffffff; }
+        .close { float: right; cursor: pointer; font-size: 20px; color: #ff4d4d; }
+        .close:hover { color: #ff6666; }
+        input[type="text"], input[type="number"], textarea { width: 100%; padding: 8px; margin: 5px 0; background: #141a1f; border: 1px solid #3e3e3e; border-radius: 4px; color: #ffffff; font-size: 12px; }
+        .support-icon { position: fixed; bottom: 10px; right: 10px; width: 40px; height: 40px; background-color: #f0b90b; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); transition: background-color 0.3s; }
+        .support-icon:hover { background-color: #ffcc00; }
+        .support-icon::before { content: "?"; font-size: 20px; color: #141a1f; }
+        .history { margin-top: 10px; background: #1c2526; padding: 10px; border-radius: 4px; border: 1px solid #2e2e2e; }
+        .history h2 { font-size: 16px; color: #f0b90b; margin-bottom: 5px; }
+        .history-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .history-table th, .history-table td { padding: 8px; text-align: left; border-bottom: 1px solid #2e2e2e; }
+        .history-table th { color: #f0b90b; }
+        .history-table td { color: #d0d0d0; }
+        .history-table tr:last-child td { border-bottom: none; }
+        .affiliate-section { margin-top: 10px; background: #1c2526; padding: 10px; border-radius: 4px; border: 1px solid #2e2e2e; }
+        .affiliate-section h2 { font-size: 16px; color: #f0b90b; margin-bottom: 5px; }
+        .affiliate-btn { padding: 4px 8px; background-color: #f0b90b; color: #141a1f; border: none; border-radius: 4px; cursor: pointer; font-size: 10px; transition: background-color 0.3s; }
+        .affiliate-btn:hover { background-color: #ffcc00; }
+        #affiliateCode, #affiliateStats { font-size: 12px; margin-top: 5px; }
+        .saques-window { background: #1c2526; padding: 8px; border-radius: 4px; border: 1px solid #2e2e2e; margin-top: 10px; width: 100%; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); }
+        .saques-window h2 { font-size: 12px; color: #f0b90b; margin-bottom: 6px; }
+        .saques-list { max-height: 100px; overflow-y: auto; }
+        .saque-item { display: flex; justify-content: space-between; padding: 4px 0; font-size: 10px; border-bottom: 1px solid #2e2e2e; }
+        .saque-item:last-child { border-bottom: none; }
+        .saque-valor { color: #f0b90b; }
+        .proprietario-modal .modal-content { width: 500px; padding: 20px; }
+        .proprietario-modal h2 { font-size: 16px; color: #f0b90b; margin-bottom: 10px; }
+        .conta-item { display: flex; justify-content: space-between; padding: 5px 0; font-size: 12px; border-bottom: 1px solid #2e2e2e; }
+        .conta-item:last-child { border-bottom: none; }
+        .total-valor { font-size: 14px; color: #f0b90b; margin-top: 10px; }
+        .toggle-chart-btn { padding: 6px 12px; background-color: #00c087; color: #ffffff; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 10px; transition: background-color 0.3s; }
+        .toggle-chart-btn:hover { background-color: #00e0a0; }
+        .toggle-chart-btn.off { background-color: #ff4d4d; }
+        .toggle-chart-btn.off:hover { background-color: #ff6666; }
+        #dificuldadeChartContainer { margin-top: 15px; display: none; }
+    </style>
+<!-- Code injected by Five-server -->
+  <script async data-id="five-server" data-file="c:\Users\thiago\Desktop\indexggg\index.html" type="application/javascript" src="/fiveserver.js"></script>
+  </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <button class="connect-btn-header" id="connectBtn">Conectar</button>
-      <h1>QUOXT SS - Jogo pimpol Bolas Giratórias</h1>
-    </div>
-    <div class="main-content">
-      <div class="game-container">
-        <div class="ball-area" id="ballArea">
-          <div class="ball-container" id="ballContainer"></div>
-          <div class="center-ball" id="centerBall"></div>
+    <div class="container">
+        <div class="header">
+            <button class="connect-btn-header" onclick="abrirJanelaCarteira()">Conectar</button>
+            <h1>QUOXT SS</h1>
+            <div class="crypto-nav">
+                <button class="crypto-btn active" id="bnbBtn" onclick="mostrarGrafico('bnb')">BNB</button>
+                <button class="crypto-btn" id="btcBtn" onclick="mostrarGrafico('btc')">BTC</button>
+                <button class="crypto-btn" id="ethBtn" onclick="mostrarGrafico('eth')">ETH</button>
+                <button class="crypto-btn" id="usdtBtn" onclick="mostrarGrafico('usdt')">USDT</button>
+            </div>
         </div>
-        <div class="bottom-buttons">
-          <button class="bottom-btn sacar-btn" id="transferirBtn">Sacar</button>
-          <button class="bottom-btn deposito-btn" id="depositoBtn">Depositar</button>
-          <button class="bottom-btn demo-btn" id="demoBtn">Demo</button>
+        <div class="main-content">
+            <div class="chart-container">
+                <div class="chart-area">
+                    <canvas id="bnbChart"></canvas>
+                    <canvas id="btcChart"></canvas>
+                    <canvas id="ethChart"></canvas>
+                    <canvas id="usdtChart"></canvas>
+                </div>
+                <div class="bottom-buttons">
+                    <button class="bottom-btn sacar-btn" id="transferirBtn" onclick="transferirSaldo()">Sacar</button>
+                    <button class="bottom-btn deposito-btn" onclick="realizarDeposito()">Depositar</button>
+                    <button class="bottom-btn demo-btn" id="demoBtn" onclick="toggleDemoMode()">Demonstração</button>
+                    <button class="bottom-btn" style="background-color: #00c087;" onclick="abrirJanelaProprietario()">Proprietário</button>
+                </div>
+            </div>
+            <div class="controls">
+                <div class="wallet-info">
+                    <p>Carteira: <span id="carteiraInfo">Não conectado</span></p>
+                    <p id="saldoReal">Saldo Real: <span>0.0000 BNB (R$ 0.00)</span></p>
+                    <p id="saldoDemo">Saldo Demo: <span>0.0000 BNB (R$ 0.00)</span></p>
+                </div>
+                <p>Valor da aposta: <input type="number" id="valorAposta" min="0.001" max="100" value="0.001" step="0.001"></p>
+                <p>Tempo de expiração:<select id="tempoExpiracao">
+                    <option value="30">30s</option>
+                    <option value="60" selected>1m</option>
+                    <option value="120">2m</option>
+                    <option value="180">3m</option>
+                    <option value="300">5m</option>
+                </select></p>
+                <div class="bet-buttons">
+                    <button class="bet-btn up" onclick="apostar('cima')">Apostar para Cima</button>
+                    <button class="bet-btn down" onclick="apostar('baixo')">Apostar para Baixo</button>
+                </div>
+                <div id="resultado">Resultado: Aguardando aposta...</div>
+                <div id="tempoRestante">Tempo restante: 1:00</div>
+                <div id="usuáriosAtivos">Usuários ativos: <span id="numeroUsuários">0</span></div>
+                <div class="saques-window">
+                
+                    <div class="saques-list" id="saquesList"></div>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="controls">
-        <p>Carteira: <span id="carteiraInfo">Não conectada</span></p>
-        <p>Saldo: <span id="saldo">0</span> BRL</p>
-        <p>Valor da aposta: <input type="number" id="valorAposta" min="1" max="100000" value="1" step="0.01"></p>
-        <p>Escolha uma cor:</p>
-        <div class="color-options">
-          <button class="color-btn" style="background-color: #ff4d4d" data-cor="#ff4d4d"></button>
-          <button class="color-btn" style="background-color: #00c087" data-cor="#00c087"></button>
-          <button class="color-btn" style="background-color: #f0b90b" data-cor="#f0b90b"></button>
-          <button class="color-btn" style="background-color: #4d4dff" data-cor="#4d4dff"></button>
+        <div class="history">
+            <h2>Histórico de Apostas</h2>
+            <table class="history-table" id="historyTable">
+                <thead>
+                    <tr>
+                        <th>Data/Hora</th>
+                        <th>Direção</th>
+                        <th>Valor (BNB)</th>
+                        <th>Resultado</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody"></tbody>
+            </table>
         </div>
-        <button class="bet-button" id="betButton">Apostar</button>
-        <div id="resultado">Resultado: Aguardando aposta...</div>
-        <div id="tempoRestante">Tempo restante: 0:00</div>
-        <div id="usuariosAtivos">Usuários ativos: <span id="numeroUsuarios">0</span></div>
-        <p>Música de fundo:</p>
-        <button id="playPauseBtn">Tocar</button>
-        <p>Volume:</p>
-        <input type="range" id="volumeControl" min="0" max="1" step="0.01" value="0.5">
-        <div class="saques-window">
-          <h2>Saques Realizados ✅</h2>
-          <div class="saques-list" id="saquesList"></div>
+        <div class="affiliate-section">
+            <h2>Programa de Afiliados</h2>
+            <button class="affiliate-btn" onclick="gerarCodigoAfiliado()">Seja Afiliado</button>
+            <p id="affiliateCode"></p>
+            <div id="affiliateStats"> Usuários Cadastrados: <span id="usuariosAfiliados">0</span><br> Valor para Saque: <span id="valorAfiliado">0</span> BNB </div>
+            <button class="affiliate-btn" onclick="solicitarSaqueAfiliado()">Solicitar Saque</button>
         </div>
-      </div>
     </div>
-    <div class="history">
-      <h2>Histórico de Apostas</h2>
-      <table class="history-table" id="historyTable">
-        <thead>
-          <tr>
-            <th>Data/Hora</th>
-            <th>Cor Escolhida</th>
-            <th>Valor (BRL)</th>
-            <th>Resultado</th>
-          </tr>
-        </thead>
-        <tbody id="historyBody"></tbody>
-      </table>
+    <!-- Janela Modal para Conectar Carteira -->
+    <div id="carteiraModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharJanelaCarteira()">×</span>
+            <h2>Conectar Carteira BNB</h2>
+            <p>Conectar via MetaMask:</p>
+            <button class="connect-btn-header" onclick="conectarMetaMask()">MetaMask</button>
+            <p>Código de Afiliado (opcional):</p>
+            <input type="text" id="codigoAfiliado" placeholder="Digite o código">
+        </div>
     </div>
-    <div class="affiliate-section">
-      <h2>Programa de Afiliados</h2>
-      <button class="affiliate-btn" id="affiliateBtn">Seja Afiliado</button>
-      <p id="affiliateCode"></p>
-      <div id="affiliateStats">
-        Usuários Cadastrados: <span id="usuariosAfiliados">0</span><br>
-        Valor para Saque: <span id="valorAfiliado">0</span> BRL
-      </div>
-      <button class="affiliate-btn" id="sacarAfiliadoBtn">Solicitar Saque</button>
+    <!-- Janela Modal para Depósito -->
+    <div id="depositoModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharJanelaDeposito()">×</span>
+            <h2>Realizar Depósito</h2>
+            <p>Valor em BNB:</p>
+            <input type="number" id="valorDeposito" min="0.001" step="0.001" placeholder="Ex: 0.00002">
+            <button class="connect-btn-header" onclick="depositarBNB()">Confirmar</button>
+            <p id="statusDeposito">Status: Aguardando ação...</p>
+        </div>
     </div>
-  </div>
-
-  <!-- Janela Modal para Conectar Carteira -->
-  <div id="carteiraModal" class="modal">
-    <div class="modal-content">
-      <span class="close" id="closeCarteira">×</span>
-      <h2>Conectar Carteira BNB</h2>
-      <p>Conecte via MetaMask:</p>
-      <button class="connect-btn-header" id="metaMaskBtn">MetaMask</button>
-      <p>Código de Afiliado (opcional):</p>
-      <input type="text" id="codigoAfiliado" placeholder="Digite o código">
+    <!-- Janela Modal para Suporte -->
+    <div id="suporteModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharJanelaSuporte()">×</span>
+            <h2>Suporte</h2>
+            <p>Enviar sua mensagem:</p>
+            <textarea id="mensagemSuporte" rows="4" placeholder="Digite aqui..."></textarea>
+            <button class="connect-btn-header" onclick="enviarMensagemSuporte()">Enviar</button>
+        </div>
     </div>
-  </div>
-
-  <!-- Janela Modal para Depósito -->
-  <div id="depositoModal" class="modal">
-    <div class="modal-content">
-      <span class="close" id="closeDeposito">×</span>
-      <h2>Realizar Depósito</h2>
-      <p>Valor em BNB (será convertido para BRL):</p>
-      <input type="number" id="valorDeposito" min="0.001" step="0.001" placeholder="Ex: 0.00002">
-      <button class="connect-btn-header" id="confirmDepositoBtn">Confirmar</button>
-      <p id="statusDeposito">Status: Aguardando ação...</p>
+    <!-- Janela Modal Proprietária -->
+    <div id="proprietarioModal" class="modal proprietario-modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharJanelaProprietario()">×</span>
+            <h2>Painel Proprietário</h2>
+            <div id="contasLogadas"></div>
+            <div class="total-valor">Valor Total do Site: <span id="valorTotalSite">0</span> BNB</div>
+            <button class="toggle-chart-btn" id="toggleChartBtn" onclick="toggleDificuldadeChart()">Ativar Gráfico Dificuldade</button>
+            <div id="dificuldadeChartContainer">
+                <canvas id="dificuldadeChart"></canvas>
+            </div>
+        </div>
     </div>
-  </div>
-
-  <!-- Janela Modal para Suporte -->
-  <div id="suporteModal" class="modal">
-    <div class="modal-content">
-      <span class="close" id="closeSuporte">×</span>
-      <h2>Suporte</h2>
-      <p>Envie sua mensagem:</p>
-      <textarea id="mensagemSuporte" rows="4" placeholder="Digite aqui..."></textarea>
-      <button class="connect-btn-header" id="enviarSuporteBtn">Enviar</button>
-    </div>
-  </div>
-
-  <!-- Ícone de Suporte -->
-  <div class="support-icon" id="supportIcon"></div>
-
-  <!-- Elementos de Áudio -->
-  <audio id="entrySound" src="https://www.soundjay.com/buttons/beep-01a.mp3"></audio>
-  <audio id="winSound" src="https://www.soundjay.com/buttons/beep-07a.mp3"></audio>
-  <audio id="loseSound" src="https://www.soundjay.com/buttons/beep-02.mp3"></audio>
-  <audio id="backgroundMusic" loop>
-    <source src="https://freemusicarchive.org/file/music/no_curator/Ketsa/2019_-_Beats_Moods_and_Sync/Ketsa_-_03_-_Dreaming_Days.mp3" type="audio/mpeg">
-    Seu navegador não suporta o elemento de áudio.
-  </audio>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const BNB_TO_BRL_RATE = 3000;
-      let saldoRealBNB = 0;
-      let saldoDepositado = localStorage.getItem('saldoDepositado') ? parseFloat(localStorage.getItem('saldoDepositado')) : 0;
-      let saldoDemo = 0;
-      let carteiraBNB = localStorage.getItem('carteiraBNB') || "";
-      let apostaAtiva = null;
-      let tempoRestante = 0;
-      let isDemoMode = false;
-      let usuariosAtivos = 1000;
-      const MINIMO_SAQUE_BRL = 70.44;
-      const SALDO_INICIAL_DEMO_BRL = 30000;
-      let historicoApostas = [];
-      let historicoApostasDemo = [];
-      let affiliateCode = "";
-      let usuariosAfiliados = 0;
-      let valorAfiliado = 0;
-      const afiliados = {};
-      const CARTEIRA_PROPRIETARIA = "0xbc1EA5fa6C39b2BcDd7621E8d674Ff196aA6d6Cb";
-      let valorTotalSite = localStorage.getItem('valorTotalSite') ? parseFloat(localStorage.getItem('valorTotalSite')) : 0;
-
-      const web3 = new Web3('https://bsc-dataseed.binance.org/');
-      const coresDisponiveis = ['#ff4d4d', '#00c087', '#f0b90b', '#4d4dff'];
-      let corSelecionada = null;
-      const NUM_BOLAS = 10;
-      let bolas = [];
-      let colorChangeInterval = null;
-
-      const ballContainer = document.getElementById('ballContainer');
-      const centerBall = document.getElementById('centerBall');
-      const backgroundMusic = document.getElementById('backgroundMusic');
-      const volumeControl = document.getElementById('volumeControl');
-      const playPauseBtn = document.getElementById('playPauseBtn');
-
-      // Configurar música de fundo
-      backgroundMusic.volume = 0.5; // Volume inicial em 50%
-      let isPlaying = false;
-
-      // Controle de play/pause
-      playPauseBtn.addEventListener('click', () => {
-        if (isPlaying) {
-          backgroundMusic.pause();
-          playPauseBtn.textContent = "Tocar";
-          isPlaying = false;
-        } else {
-          backgroundMusic.play().then(() => {
-            playPauseBtn.textContent = "Pausar";
-            isPlaying = true;
-          }).catch(error => {
-            console.log("Erro ao reproduzir música:", error);
-            alert("Não foi possível tocar a música. Verifique o console para mais detalhes.");
-          });
-        }
-      });
-
-      // Controle de volume
-      volumeControl.addEventListener('input', () => {
-        backgroundMusic.volume = volumeControl.value;
-      });
-
-      function criarBolas() {
-        ballContainer.innerHTML = '';
-        bolas = [];
-        const radius = 120;
-        for (let i = 0; i < NUM_BOLAS; i++) {
-          const angle = (i / NUM_BOLAS) * 2 * Math.PI;
-          const ball = document.createElement('div');
-          ball.classList.add('ball');
-          ball.style.backgroundColor = coresDisponiveis[i % coresDisponiveis.length];
-          ball.style.left = `${150 + radius * Math.cos(angle) - 15}px`;
-          ball.style.top = `${150 + radius * Math.sin(angle) - 15}px`;
-          ballContainer.appendChild(ball);
-          bolas.push(ball);
-        }
-        centerBall.style.display = 'none';
-      }
-
-      function mudarCoresBolas() {
-        bolas.forEach(ball => {
-          const corAleatoria = coresDisponiveis[Math.floor(Math.random() * coresDisponiveis.length)];
-          ball.style.backgroundColor = corAleatoria;
-        });
-      }
-
-      function pararRotacao() {
-        ballContainer.style.animationPlayState = 'paused';
-      }
-
-      function iniciarRotacao() {
-        ballContainer.style.animationPlayState = 'running';
-      }
-
-      function pararMudancaCores() {
-        if (colorChangeInterval) {
-          clearInterval(colorChangeInterval);
-          colorChangeInterval = null;
-        }
-      }
-
-      function selecionarCor(cor) {
-        corSelecionada = cor;
-        document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('selected'));
-        document.querySelector(`.color-btn[data-cor="${cor}"]`).classList.add('selected');
-      }
-
-      function formatarTempo(segundos) {
-        const minutos = Math.floor(segundos / 60);
-        const secs = segundos % 60;
-        return `${minutos}:${secs < 10 ? '0' + secs : secs}`;
-      }
-
-      async function tentarReconectarCarteira() {
-        if (window.ethereum && carteiraBNB) {
-          try {
-            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-            if (accounts.length > 0 && accounts[0].toLowerCase() === carteiraBNB.toLowerCase()) {
-              await atualizarSaldoReal();
-              document.getElementById("carteiraInfo").innerText = `${carteiraBNB.slice(0, 6)}...${carteiraBNB.slice(-4)}`;
-              document.getElementById("saldo").innerText = saldoDepositado.toFixed(2);
-            } else {
-              carteiraBNB = "";
-              localStorage.removeItem('carteiraBNB');
-              localStorage.removeItem('saldoDepositado');
-              saldoDepositado = 0;
-              document.getElementById("carteiraInfo").innerText = "Não conectada";
-              document.getElementById("saldo").innerText = "0.00";
-            }
-          } catch (error) {
-            console.log("Erro ao reconectar:", error);
-          }
-        }
-      }
-
-      async function atualizarSaldoReal() {
-        if (carteiraBNB && !isDemoMode) {
-          try {
-            const balanceWei = await web3.eth.getBalance(carteiraBNB);
-            saldoRealBNB = parseFloat(web3.utils.fromWei(balanceWei, 'ether'));
-          } catch (error) {
-            console.log("Erro ao atualizar saldo real:", error);
-            saldoRealBNB = 0;
-          }
-        }
-      }
-
-      function toggleDemoMode() {
-        const demoBtn = document.getElementById("demoBtn");
-        const transferirBtn = document.getElementById("transferirBtn");
-
-        if (apostaAtiva) {
-          alert("Aguarde a aposta atual terminar!");
-          return;
-        }
-
-        isDemoMode = !isDemoMode;
-        if (isDemoMode) {
-          demoBtn.textContent = "Demo (Ativo)";
-          demoBtn.classList.add("active");
-          saldoDemo = SALDO_INICIAL_DEMO_BRL;
-          carteiraBNB = "Conta Demo";
-          document.getElementById("carteiraInfo").innerText = "Conta Demo";
-          document.getElementById("saldo").innerText = saldoDemo.toFixed(2);
-          transferirBtn.disabled = true;
-          alert("Modo Demo ativado! Saldo inicial: 30.000,00 BRL.");
-        } else {
-          demoBtn.textContent = "Demo";
-          demoBtn.classList.remove("active");
-          saldoDemo = 0;
-          carteiraBNB = localStorage.getItem('carteiraBNB') || "";
-          if (carteiraBNB) {
-            document.getElementById("carteiraInfo").innerText = `${carteiraBNB.slice(0, 6)}...${carteiraBNB.slice(-4)}`;
-            document.getElementById("saldo").innerText = saldoDepositado.toFixed(2);
-            tentarReconectarCarteira();
-          } else {
-            document.getElementById("carteiraInfo").innerText = "Não conectada";
-            document.getElementById("saldo").innerText = "0.00";
-          }
-          transferirBtn.disabled = false;
-          alert("Modo Demo desativado!");
-        }
-        atualizarHistorico();
-      }
-
-      function abrirJanelaCarteira() {
-        if (isDemoMode) {
-          alert("No modo demo, a carteira é simulada.");
-          return;
-        }
-        document.getElementById("carteiraModal").style.display = "block";
-      }
-
-      function fecharJanelaCarteira() {
-        document.getElementById("carteiraModal").style.display = "none";
-        document.getElementById("codigoAfiliado").value = "";
-      }
-
-      async function conectarMetaMask() {
-        if (isDemoMode) {
-          alert("Desative o modo demo para conectar uma carteira real!");
-          return;
-        }
-        if (!window.ethereum) {
-          alert("Instale o MetaMask!");
-          return;
-        }
-        try {
-          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-          carteiraBNB = accounts[0];
-          localStorage.setItem('carteiraBNB', carteiraBNB);
-          document.getElementById("carteiraInfo").innerText = `${carteiraBNB.slice(0, 6)}...${carteiraBNB.slice(-4)}`;
-          await atualizarSaldoReal();
-          document.getElementById("saldo").innerText = saldoDepositado.toFixed(2);
-          fecharJanelaCarteira();
-        } catch (error) {
-          alert("Erro ao conectar: " + error.message);
-        }
-      }
-
-      async function apostar() {
-        if (apostaAtiva) {
-          alert("Aguarde a aposta anterior!");
-          return;
-        }
-        if (!corSelecionada) {
-          alert("Escolha uma cor antes de apostar!");
-          return;
-        }
-
-        let valorAposta = parseFloat(document.getElementById("valorAposta").value);
-
-        if (isDemoMode) {
-          if (saldoDemo < valorAposta) {
-            alert(`Saldo demo insuficiente! Saldo atual: ${saldoDemo.toFixed(2)} BRL`);
-            return;
-          }
-          saldoDemo -= valorAposta;
-          document.getElementById("saldo").innerText = saldoDemo.toFixed(2);
-        } else {
-          if (!carteiraBNB || carteiraBNB === "Conta Demo") {
-            alert("Conecte uma carteira real para apostar!");
-            abrirJanelaCarteira();
-            return;
-          }
-          if (saldoDepositado < valorAposta) {
-            alert(`Saldo depositado insuficiente! Saldo atual: ${saldoDepositado.toFixed(2)} BRL`);
-            return;
-          }
-          saldoDepositado -= valorAposta;
-          localStorage.setItem('saldoDepositado', saldoDepositado);
-          document.getElementById("saldo").innerText = saldoDepositado.toFixed(2);
-        }
-
-        apostaAtiva = {
-          cor: corSelecionada,
-          valor: valorAposta,
-          isDemo: isDemoMode
+    <!-- Ícone de Suporte -->
+    <div class="support-icon" onclick="abrirJanelaSuporte()"></div>
+    <!-- Elementos de Áudio -->
+    <audio id="entradaSom" src="https://www.soundjay.com/buttons/beep-01a.mp3"></audio>
+    <audio id="winSound" src="https://www.soundjay.com/buttons/beep-07a.mp3"></audio>
+    <audio id="loseSound" src="https://www.soundjay.com/buttons/beep-02.mp3"></audio>
+    <script>
+        let saldoReal = 0;
+        let saldoDepositado = localStorage.getItem('saldoDepositado') ? parseFloat(localStorage.getItem('saldoDepositado')) : 0;
+        let saldoDemo = 0;
+        let tempoRestante = 60;
+        let usuáriosAtivos = 1000;
+        const MINIMO_SAQUE = 0.023479184927942306;
+        const SALDO_INICIAL_DEMO = 10;
+        const BONUS_PRIMEIRO_LOGIN = 0.004; // R$ 10 / R$ 2500 por BNB = 0.004 BNB
+        let historicoApostas = [];
+        let historicoApostasDemo = [];
+        let afiliadoCode = "";
+        let usuariosAfiliados = 0;
+        let valorAfiliado = 0;
+        let codigoAfiliadoInserido = "";
+        const afiliados = {};
+        const CARTEIRA_PROPRIETARIA = "0xbc1EA5fa6C39b2BcDd7621E8d674Ff196aA6d6Cb";
+        let valorTotalSite = localStorage.getItem('valorTotalSite') ? parseFloat(localStorage.getItem('valorTotalSite')) : 0;
+        let dificuldadeChartAtivo = false;
+        let dificuldadeChart = null;
+        let contasLogadas = JSON.parse(localStorage.getItem('contasLogadas')) || [];
+        const web3 = new Web3('https://bsc-dataseed.binance.org/');
+        let isDemoMode = false;
+        let apostaAtiva = null;
+        let criptoAtual = 'bnb';
+        let carteiraBNB = localStorage.getItem('carteiraBNB') || "";
+        let primeiroLogin = localStorage.getItem('primeiroLogin') !== 'false'; // Verifica se é o primeiro login
+        const criptomoedas = {
+            bnb: { dataPoints: [500], labels: ["0s"], chart: null },
+            btc: { dataPoints: [60000], labels: ["0s"], chart: null },
+            eth: { dataPoints: [3000], labels: ["0s"], chart: null },
+            usdt: { dataPoints: [1], labels: ["0s"], chart: null }
         };
-        tempoRestante = 30;
-        document.getElementById("resultado").innerText = "Sorteando...";
-        document.getElementById("tempoRestante").innerText = `Tempo restante: ${formatarTempo(tempoRestante)}`;
-        document.getElementById("entrySound").play();
-        criarBolas();
-        iniciarRotacao();
-        colorChangeInterval = setInterval(mudarCoresBolas, 500);
-        iniciarContagemRegressiva();
-      }
 
-      function iniciarContagemRegressiva() {
-        let timer = setInterval(() => {
-          tempoRestante--;
-          document.getElementById("tempoRestante").innerText = `Tempo restante: ${formatarTempo(tempoRestante)}`;
-          if (tempoRestante < 0) {
-            clearInterval(timer);
-            finalizarAposta();
-          }
+        // Cotação fictícia de BNB para BRL
+        let cotacaoBNBparaBRL = 2500; // 1 BNB = R$ 2.500,00
+
+        // Função para converter BNB para BRL
+        function converterBNBparaBRL(valorBNB) {
+            return (valorBNB * cotacaoBNBparaBRL).toFixed(2);
+        }
+
+        // Função para atualizar a exibição da carteira e saldos
+        function atualizarExibicaoCarteira() {
+            const carteiraInfo = document.getElementById("carteiraInfo");
+            const saldoRealElement = document.getElementById("saldoReal");
+            const saldoDemoElement = document.getElementById("saldoDemo");
+
+            carteiraInfo.textContent = isDemoMode ? "Conta Demo" : (carteiraBNB ? `${carteiraBNB.slice(0, 6)}...${carteiraBNB.slice(-4)}` : "Não conectado");
+            saldoRealElement.innerHTML = `Saldo Real: <span>${saldoDepositado.toFixed(4)} BNB (R$ ${converterBNBparaBRL(saldoDepositado)})</span>`;
+            saldoDemoElement.innerHTML = `Saldo Demo: <span>${saldoDemo.toFixed(4)} BNB (R$ ${converterBNBparaBRL(saldoDemo)})</span>`;
+        }
+
+        const drawPlayerEntry = {
+            id: 'drawPlayerEntry',
+            afterDraw(chart) {
+                if (!apostaAtiva) return;
+                const { ctx, chartArea, scales } = chart;
+                const y = scales.y.getPixelForValue(apostaAtiva.precoEntrada);
+                const lastIndex = chart.data.labels.length - 1;
+                const x = scales.x.getPixelForValue(lastIndex);
+                ctx.save();
+                ctx.beginPath();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.moveTo(chartArea.left, y);
+                ctx.lineTo(chartArea.right, y);
+                ctx.stroke();
+                ctx.restore();
+                ctx.save();
+                ctx.beginPath();
+                if (apostaAtiva.direcao === 'cima') {
+                    ctx.fillStyle = '#00c087';
+                    ctx.moveTo(x, y - 15);
+                    ctx.lineTo(x - 10, y + 5);
+                    ctx.lineTo(x + 10, y + 5);
+                } else {
+                    ctx.fillStyle = '#ff4d4d';
+                    ctx.moveTo(x, y + 15);
+                    ctx.lineTo(x - 10, y - 5);
+                    ctx.lineTo(x + 10, y - 5);
+                }
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+        };
+
+        function criarGrafico(cripto, id) {
+            const ctx = document.getElementById(id).getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: criptomoedas[cripto].labels,
+                    datasets: [{
+                        label: `Preço do ${cripto.toUpperCase()}`,
+                        data: criptomoedas[cripto].dataPoints,
+                        borderColor: ctx => {
+                            const index = ctx.dataIndex;
+                            if (index === 0) return '#f0b90b';
+                            const prevPrice = criptomoedas[cripto].dataPoints[index - 1];
+                            const currPrice = criptomoedas[cripto].dataPoints[index];
+                            return currPrice > prevPrice ? '#00c087' : '#ff4d4d';
+                        },
+                        borderWidth: 2,
+                        fill: false,
+                        segment: {
+                            borderColor: ctx => {
+                                const index = ctx.p1DataIndex;
+                                if (index === 0) return '#f0b90b';
+                                const prevPrice = criptomoedas[cripto].dataPoints[index - 1];
+                                const currPrice = criptomoedas[cripto].dataPoints[index];
+                                return currPrice > prevPrice ? '#00c087' : '#ff4d4d';
+                            }
+                        }
+                    }]
+                },
+                options: {
+                    animation: false,
+                    scales: {
+                        y: { beginAtZero: false, grid: { color: '#2e2e2e' }, ticks: { color: '#ffffff', font: { size: 12 } } },
+                        x: { grid: { color: '#2e2e2e' }, ticks: { color: '#ffffff', font: { size: 12 } } }
+                    },
+                    plugins: { legend: { display: false } }
+                },
+                plugins: [drawPlayerEntry]
+            });
+            return chart;
+        }
+
+        criptomoedas.bnb.chart = criarGrafico('bnb', 'bnbChart');
+        criptomoedas.btc.chart = criarGrafico('btc', 'btcChart');
+        criptomoedas.eth.chart = criarGrafico('eth', 'ethChart');
+        criptomoedas.usdt.chart = criarGrafico('usdt', 'usdtChart');
+
+        function atualizarGrafico(cripto) {
+            const data = criptomoedas[cripto];
+            let novoPreco = data.dataPoints[data.dataPoints.length - 1] + (Math.random() * (cripto === 'usdt' ? 0.01 : 4) - (cripto === 'usdt' ? 0.005 : 2));
+            data.dataPoints.push(novoPreco);
+            data.labels.push(`${data.labels.length}s`);
+            if (data.dataPoints.length > 60) {
+                data.dataPoints.shift();
+                data.labels.shift();
+            }
+            data.chart.update();
+        }
+
+        function simularUsuariosAtivos() {
+            const variacao = Math.floor(Math.random() * 11) - 5;
+            usuáriosAtivos = Math.max(690, Math.min(1400, usuáriosAtivos + variacao));
+            document.getElementById("numeroUsuarios").innerText = usuáriosAtivos;
+        }
+
+        setInterval(() => {
+            atualizarGrafico('bnb');
+            atualizarGrafico('btc');
+            atualizarGrafico('eth');
+            atualizarGrafico('usdt');
         }, 1000);
-      }
 
-      function finalizarAposta() {
-        pararRotacao();
-        pararMudancaCores();
-        const corSorteada = coresDisponiveis[Math.floor(Math.random() * coresDisponiveis.length)];
-        bolas.forEach(ball => ball.style.backgroundColor = corSorteada);
-        centerBall.style.backgroundColor = corSorteada;
-        centerBall.style.display = 'block';
-        const ganhou = corSorteada === apostaAtiva.cor;
+        setInterval(simularUsuariosAtivos, 3000);
 
-        if (apostaAtiva.isDemo) {
-          if (ganhou) {
-            saldoDemo += apostaAtiva.valor * 4;
-          }
-          document.getElementById("saldo").innerText = saldoDemo.toFixed(2);
-          document.getElementById("resultado").innerText = ganhou ? "Você ganhou! (Demo)" : "Você perdeu! (Demo)";
-          historicoApostasDemo.unshift({
-            dataHora: new Date().toLocaleString('pt-BR'),
-            cor: apostaAtiva.cor,
-            valor: apostaAtiva.valor.toFixed(2),
-            resultado: ganhou ? "Ganhou" : "Perdeu"
-          });
-          if (historicoApostasDemo.length > 10) historicoApostasDemo.pop();
-        } else {
-          if (ganhou) {
-            saldoDepositado += apostaAtiva.valor * 4;
+        function mostrarGrafico(cripto) {
+            criptoAtual = cripto;
+            document.querySelectorAll('canvas').forEach(canvas => canvas.style.display = 'none');
+            document.getElementById(`${cripto}Chart`).style.display = 'block';
+            document.querySelectorAll('.crypto-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`${cripto}Btn`).classList.add('active');
+            if (apostaAtiva) {
+                criptomoedas[cripto].chart.update();
+            }
+        }
+
+        function formatarTempo(segundos) {
+            const minutos = Math.floor(segundos / 60);
+            const segs = segundos % 60;
+            return `${minutos}:${segs < 10 ? '0' + segs : segs}`;
+        }
+
+        async function tentarReconectarCarteira() {
+            if (window.ethereum && carteiraBNB) {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    if (accounts.length > 0 && accounts[0].toLowerCase() === carteiraBNB.toLowerCase()) {
+                        await atualizarSaldoReal();
+                        atualizarExibicaoCarteira();
+                        if (!contasLogadas.some(c => c.carteira.toLowerCase() === carteiraBNB.toLowerCase())) {
+                            contasLogadas.push({ carteira: carteiraBNB, saldo: saldoDepositado });
+                            localStorage.setItem('contasLogadas', JSON.stringify(contasLogadas));
+                        }
+                        if (carteiraBNB.toLowerCase() === CARTEIRA_PROPRIETARIA.toLowerCase()) {
+                            await atualizarPainelProprietario();
+                        }
+                    } else {
+                        carteiraBNB = "";
+                        localStorage.removeItem('carteiraBNB');
+                        localStorage.removeItem('saldoDepositado');
+                        saldoDepositado = 0;
+                        atualizarExibicaoCarteira();
+                    }
+                } catch (error) {
+                    console.log("Erro ao reconectar automaticamente:", error);
+                    carteiraBNB = "";
+                    localStorage.removeItem('carteiraBNB');
+                    localStorage.removeItem('saldoDepositado');
+                    saldoDepositado = 0;
+                    atualizarExibicaoCarteira();
+                }
+            }
+        }
+
+        async function atualizarSaldoReal() {
+            if (carteiraBNB && !isDemoMode) {
+                try {
+                    const balanceWei = await web3.eth.getBalance(carteiraBNB);
+                    saldoReal = parseFloat(web3.utils.fromWei(balanceWei, 'ether'));
+                    atualizarExibicaoCarteira();
+                } catch (error) {
+                    console.log("Erro ao atualizar saldo real:", error);
+                    saldoReal = 0;
+                    atualizarExibicaoCarteira();
+                }
+            }
+        }
+
+        function toggleDemoMode() {
+            const demoBtn = document.getElementById("demoBtn");
+            const transferirBtn = document.getElementById("transferirBtn");
+            if (apostaAtiva) {
+                alert("Não é possível ativar o modo demo enquanto uma aposta estiver ativa! Aguarde o término da aposta.");
+                return;
+            }
+            isDemoMode = !isDemoMode;
+            if (isDemoMode) {
+                demoBtn.textContent = "Demonstração (Ativo)";
+                demoBtn.classList.add("active");
+                saldoDemo = SALDO_INICIAL_DEMO;
+                carteiraBNB = "Conta Demo";
+                atualizarExibicaoCarteira();
+                transferirBtn.disabled = true;
+                afiliadoCode = "";
+                usuariosAfiliados = 0;
+                valorAfiliado = 0;
+                historicoApostasDemo = [];
+                atualizarStatsAfiliado();
+                document.getElementById("affiliateCode").innerText = "";
+                atualizarHistórico();
+                alert("Modo Demo ativado! Saldo inicial: 10 BNB. Apostas no modo demo são simuladas.");
+            } else {
+                demoBtn.textContent = "Demonstração";
+                demoBtn.classList.remove("active");
+                saldoDemo = 0;
+                carteiraBNB = localStorage.getItem('carteiraBNB') || "";
+                codigoAfiliadoInserido = "";
+                atualizarExibicaoCarteira();
+                transferirBtn.disabled = false;
+                afiliadoCode = "";
+                usuariosAfiliados = 0;
+                valorAfiliado = 0;
+                historicoApostasDemo = [];
+                atualizarStatsAfiliado();
+                document.getElementById("affiliateCode").innerText = "";
+                atualizarHistórico();
+                alert("Modo Demo desativado! Voltando ao modo real.");
+                tentarReconectarCarteira();
+            }
+        }
+
+        function abrirJanelaCarteira() {
+            if (isDemoMode) {
+                alert("No modo demo, a carteira é simulada.");
+                return;
+            }
+            document.getElementById("carteiraModal").style.display = "block";
+        }
+
+        function fecharJanelaCarteira() {
+            document.getElementById("carteiraModal").style.display = "none";
+            document.getElementById("codigoAfiliado").value = "";
+        }
+
+        async function conectarMetaMask() {
+            if (isDemoMode) {
+                alert("Desative o modo de demonstração para conectar uma carteira real");
+                return;
+            }
+            if (!window.ethereum) {
+                alert("Instale o MetaMask!");
+                return;
+            }
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                carteiraBNB = accounts[0];
+                localStorage.setItem('carteiraBNB', carteiraBNB);
+                if (primeiroLogin) {
+                    saldoDepositado += BONUS_PRIMEIRO_LOGIN;
+                    localStorage.setItem('saldoDepositado', saldoDepositado);
+                    localStorage.setItem('primeiroLogin', 'false');
+                    primeiroLogin = false;
+                    alert(`Bem-vindo! Você recebeu um bônus de ${BONUS_PRIMEIRO_LOGIN} BNB (R$ 10) pelo primeiro login.`);
+                }
+                codigoAfiliadoInserido = document.getElementById("codigoAfiliado").value.trim();
+                if (codigoAfiliadoInserido && afiliados[codigoAfiliadoInserido] && afiliados[codigoAfiliadoInserido].carteira !== carteiraBNB) {
+                    afiliados[codigoAfiliadoInserido].usuarios = (afiliados[codigoAfiliadoInserido].usuarios || 0) + 1;
+                    console.log(`Usuário registrado com código ${codigoAfiliadoInserido}`);
+                } else {
+                    codigoAfiliadoInserido = "";
+                }
+                await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x38' }] });
+                await atualizarSaldoReal();
+                atualizarExibicaoCarteira();
+                if (!contasLogadas.some(c => c.carteira.toLowerCase() === carteiraBNB.toLowerCase())) {
+                    contasLogadas.push({ carteira: carteiraBNB, saldo: saldoDepositado });
+                    localStorage.setItem('contasLogadas', JSON.stringify(contasLogadas));
+                }
+                fecharJanelaCarteira();
+                atualizarStatsAfiliado();
+                if (carteiraBNB.toLowerCase() === CARTEIRA_PROPRIETARIA.toLowerCase()) {
+                    await atualizarPainelProprietario();
+                    abrirJanelaProprietario();
+                }
+            } catch (error) {
+                alert("Erro ao conectar: " + error.message);
+                carteiraBNB = "";
+                localStorage.removeItem('carteiraBNB');
+                localStorage.removeItem('saldoDepositado');
+                saldoDepositado = 0;
+                atualizarExibicaoCarteira();
+            }
+        }
+
+        async function apostar(direcao) {
+            if (apostaAtiva) {
+                alert("Aguarde a aposta anterior!");
+                return;
+            }
+            if (isDemoMode) {
+                let valorAposta = parseFloat(document.getElementById("valorAposta").value);
+                let tempoSelecionado = parseInt(document.getElementById("tempoExpiracao").value);
+                if (saldoDemo < valorAposta) {
+                    alert(`Saldo demo insuficiente! Saldo atual: ${saldoDemo.toFixed(4)} BNB`);
+                    return;
+                }
+                saldoDemo -= valorAposta;
+                atualizarExibicaoCarteira();
+                apostaAtiva = {
+                    direcao,
+                    valor: valorAposta,
+                    precoEntrada: criptomoedas[criptoAtual].dataPoints[criptomoedas[criptoAtual].dataPoints.length - 1],
+                    tempoExpiracao: tempoSelecionado,
+                    criptoOrigem: criptoAtual,
+                    isDemo: true
+                };
+                tempoRestante = tempoSelecionado;
+                document.getElementById("resultado").innerText = "Aposta em andamento (Demo)...";
+                document.getElementById("tempoRestante").innerText = `Tempo restante: ${formatarTempo(tempoRestante)}`;
+                criptomoedas[criptoAtual].chart.update();
+                document.getElementById("entradaSom").play().catch(error => console.log("Erro ao tocar som:", error));
+                iniciarContagemRegressiva();
+                return;
+            }
+            if (!carteiraBNB || carteiraBNB === "Conta Demo") {
+                alert("Você precisa estar logado com uma carteira real para apostar! Conecte sua carteira agora.");
+                abrirJanelaCarteira();
+                return;
+            }
+            let valorAposta = parseFloat(document.getElementById("valorAposta").value);
+            let tempoSelecionado = parseInt(document.getElementById("tempoExpiracao").value);
+            if (saldoDepositado < valorAposta) {
+                alert(`Saldo depositado insuficiente! Saldo atual: ${saldoDepositado.toFixed(4)} BNB`);
+                return;
+            }
+            saldoDepositado -= valorAposta;
             localStorage.setItem('saldoDepositado', saldoDepositado);
-          }
-          document.getElementById("saldo").innerText = saldoDepositado.toFixed(2);
-          document.getElementById("resultado").innerText = ganhou ? "Você ganhou!" : "Você perdeu!";
-          historicoApostas.unshift({
-            dataHora: new Date().toLocaleString('pt-BR'),
-            cor: apostaAtiva.cor,
-            valor: apostaAtiva.valor.toFixed(2),
-            resultado: ganhou ? "Ganhou" : "Perdeu"
-          });
-          if (historicoApostas.length > 10) historicoApostas.pop();
+            atualizarExibicaoCarteira();
+            apostaAtiva = {
+                direcao,
+                valor: valorAposta,
+                precoEntrada: criptomoedas[criptoAtual].dataPoints[criptomoedas[criptoAtual].dataPoints.length - 1],
+                tempoExpiracao: tempoSelecionado,
+                criptoOrigem: criptoAtual,
+                isDemo: false
+            };
+            tempoRestante = tempoSelecionado;
+            document.getElementById("resultado").innerText = "Aposta em andamento...";
+            document.getElementById("tempoRestante").innerText = `Tempo restante: ${formatarTempo(tempoRestante)}`;
+            criptomoedas[criptoAtual].chart.update();
+            document.getElementById("entradaSom").play().catch(error => console.log("Erro ao tocar som:", error));
+            iniciarContagemRegressiva();
         }
 
-        if (ganhou) {
-          document.getElementById("winSound").play();
-        } else {
-          document.getElementById("loseSound").play();
+        function iniciarContagemRegressiva() {
+            let timer = setInterval(() => {
+                document.getElementById("tempoRestante").innerText = `Tempo restante: ${formatarTempo(tempoRestante)}`;
+                tempoRestante--;
+                if (tempoRestante < 0) {
+                    clearInterval(timer);
+                    finalizarAposta();
+                }
+            }, 1000);
         }
 
-        atualizarHistorico();
-        apostaAtiva = null;
-      }
-
-      function atualizarHistorico() {
-        const historyBody = document.getElementById("historyBody");
-        historyBody.innerHTML = "";
-        const historico = isDemoMode ? historicoApostasDemo : historicoApostas;
-        historico.forEach(aposta => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${aposta.dataHora}</td>
-            <td><div style="width: 20px; height: 20px; background-color: ${aposta.cor}; border-radius: 50%;"></div></td>
-            <td>${aposta.valor}</td>
-            <td>${aposta.resultado}</td>
-          `;
-          historyBody.appendChild(row);
-        });
-      }
-
-      async function transferirSaldo() {
-        if (isDemoMode) {
-          alert("Transferências desativadas no modo demo!");
-          return;
+        async function finalizarAposta() {
+            let precoFinal = criptomoedas[apostaAtiva.criptoOrigem].dataPoints[criptomoedas[apostaAtiva.criptoOrigem].dataPoints.length - 1];
+            let ganhou = (apostaAtiva.direcao === 'cima' && precoFinal > apostaAtiva.precoEntrada) || (apostaAtiva.direcao === 'baixo' && precoFinal < apostaAtiva.precoEntrada);
+            if (apostaAtiva.isDemo) {
+                if (ganhou) {
+                    saldoDemo += apostaAtiva.valor * 2;
+                }
+                atualizarExibicaoCarteira();
+                document.getElementById("resultado").innerText = ganhou ? "Você ganhou! (Demo)" : "Você perdeu! (Demo)";
+                const dataHora = new Date().toLocaleString('pt-BR');
+                historicoApostasDemo.unshift({ dataHora, direcao: apostaAtiva.direcao, valor: apostaAtiva.valor.toFixed(4), resultado: ganhou ? "Ganhou" : "Perdeu" });
+                if (historicoApostasDemo.length > 10) historicoApostasDemo.pop();
+            } else {
+                if (ganhou) {
+                    saldoDepositado += apostaAtiva.valor * 2;
+                    localStorage.setItem('saldoDepositado', saldoDepositado);
+                }
+                atualizarExibicaoCarteira();
+                document.getElementById("resultado").innerText = ganhou ? "Você ganhou!" : "Você perdeu!";
+                const dataHora = new Date().toLocaleString('pt-BR');
+                historicoApostas.unshift({ dataHora, direcao: apostaAtiva.direcao, valor: apostaAtiva.valor.toFixed(4), resultado: ganhou ? "Ganhou" : "Perdeu" });
+                if (historicoApostas.length > 10) historicoApostas.pop();
+            }
+            if (ganhou) {
+                document.getElementById("winSound").play().catch(error => console.log("Erro ao tocar som:", error));
+            } else {
+                document.getElementById("loseSound").play().catch(error => console.log("Erro ao tocar som:", error));
+            }
+            atualizarHistórico();
+            apostaAtiva = null;
+            criptomoedas[criptoAtual].chart.update();
         }
-        if (saldoDepositado <= 0) {
-          alert("Saldo insuficiente!");
-          return;
+
+        function atualizarHistórico() {
+            const historyBody = document.getElementById("historyBody");
+            historyBody.innerHTML = "";
+            const histórico = isDemoMode ? historicoApostasDemo : historicoApostas;
+            histórico.forEach(aposta => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${aposta.dataHora}</td>
+                    <td>${aposta.direcao.charAt(0).toUpperCase() + aposta.direcao.slice(1)}</td>
+                    <td>${aposta.valor}</td>
+                    <td>${aposta.resultado}</td>
+                `;
+                historyBody.appendChild(row);
+            });
         }
-        if (saldoDepositado < MINIMO_SAQUE_BRL) {
-          alert(`Mínimo para saque: ${MINIMO_SAQUE_BRL.toFixed(2)} BRL! Saldo atual: ${saldoDepositado.toFixed(2)} BRL`);
-          return;
+
+        async function transferirSaldo() {
+            if (isDemoMode) {
+                alert("Transferências desativadas no modo demo!");
+                return;
+            }
+            if (saldoDepositado <= 0) {
+                alert("Saldo insuficiente!");
+                return;
+            }
+            if (saldoDepositado < MINIMO_SAQUE) {
+                alert(`Mínimo para saque: ${MINIMO_SAQUE} BNB! Saldo atual: ${saldoDepositado.toFixed(4)} BNB`);
+                return;
+            }
+            let carteiraDestino = prompt("Carteira BNB de destino:");
+            if (!carteiraDestino) {
+                alert("Endereço obrigatório!");
+                return;
+            }
+            let valorTransferencia = saldoDepositado;
+            try {
+                await atualizarSaldoReal();
+                if (saldoReal < valorTransferencia) {
+                    alert(`Saldo real insuficiente na carteira! Saldo atual: ${saldoReal.toFixed(4)} BNB`);
+                    return;
+                }
+                const valorWei = web3.utils.toWei(valorTransferencia.toString(), 'ether');
+                const txHash = await window.ethereum.request({
+                    method: 'eth_sendTransaction',
+                    params: [{
+                        from: carteiraBNB,
+                        to: carteiraDestino,
+                        value: web3.utils.toHex(valorWei),
+                    }],
+                });
+                const recibo = await web3.eth.getTransactionReceipt(txHash);
+                if (recibo && recibo.status) {
+                    saldoDepositado = 0;
+                    localStorage.setItem('saldoDepositado', saldoDepositado);
+                    valorTotalSite -= valorTransferencia;
+                    localStorage.setItem('valorTotalSite', valorTotalSite);
+                    atualizarExibicaoCarteira();
+                    atualizarPainelProprietario();
+                    simularSaques(valorTransferencia, carteiraDestino); // Adiciona o saque real à lista
+                    alert(`Transferência de ${valorTransferencia} BNB para ${carteiraDestino} realizada!`);
+                } else {
+                    alert("Falha na transação.");
+                }
+            } catch (error) {
+                alert("Erro ao transferir: " + error.message);
+            }
         }
-        let carteiraDestino = prompt("Carteira BNB de destino:");
-        if (!carteiraDestino) {
-          alert("Endereço obrigatório!");
-          return;
+
+        function realizarDeposito() {
+            if (isDemoMode) {
+                const valorDeposito = parseFloat(prompt("Modo Demo: Valor em BNB:"));
+                if (valorDeposito && valorDeposito > 0) {
+                    saldoDemo += valorDeposito;
+                    atualizarExibicaoCarteira();
+                    alert(`Depósito simulado de ${valorDeposito} BNB concluído!`);
+                } else {
+                    alert("Valor inválido!");
+                }
+                return;
+            }
+            if (!carteiraBNB) {
+                alert("Conecte a carteira primeiro!");
+                return;
+            }
+            document.getElementById("depositoModal").style.display = "block";
         }
-        let valorTransferenciaBNB = saldoDepositado / BNB_TO_BRL_RATE;
-        try {
-          await atualizarSaldoReal();
-          if (saldoRealBNB < valorTransferenciaBNB) {
-            alert(`Saldo real insuficiente na carteira! Saldo atual: ${(saldoRealBNB * BNB_TO_BRL_RATE).toFixed(2)} BRL`);
-            return;
-          }
-          const valorWei = web3.utils.toWei(valorTransferenciaBNB.toString(), 'ether');
-          const txHash = await window.ethereum.request({
-            method: 'eth_sendTransaction',
-            params: [{ from: carteiraBNB, to: carteiraDestino, value: web3.utils.toHex(valorWei) }],
-          });
-          const receipt = await web3.eth.getTransactionReceipt(txHash);
-          if (receipt && receipt.status) {
-            saldoDepositado = 0;
-            localStorage.setItem('saldoDepositado', saldoDepositado);
-            valorTotalSite -= saldoDepositado;
-            localStorage.setItem('valorTotalSite', valorTotalSite);
-            document.getElementById("saldo").innerText = saldoDepositado.toFixed(2);
-            alert(`Transferência de ${valorTransferenciaBNB.toFixed(4)} BNB (equivalente a ${saldoDepositado.toFixed(2)} BRL) realizada!`);
-          } else {
-            alert("Falha na transação.");
-          }
-        } catch (error) {
-          alert("Erro ao transferir: " + error.message);
+
+        function fecharJanelaDeposito() {
+            document.getElementById("depositoModal").style.display = "none";
+            document.getElementById("valorDeposito").value = "";
+            document.getElementById("statusDeposito").innerText = "Status: Aguardando ação...";
         }
-      }
 
-      function realizarDeposito() {
-        if (isDemoMode) {
-          const valorDepositoBRL = parseFloat(prompt("Modo Demo: Valor em BRL:"));
-          if (valorDepositoBRL && valorDepositoBRL > 0) {
-            saldoDemo += valorDepositoBRL;
-            document.getElementById("saldo").innerText = saldoDemo.toFixed(2);
-            alert(`Depósito simulado de ${valorDepositoBRL.toFixed(2)} BRL concluído!`);
-          }
-          return;
+        async function depositarBNB() {
+            if (isDemoMode) {
+                alert("Desative o modo demo para depósitos reais!");
+                return;
+            }
+            if (!window.ethereum) {
+                alert("Instale o MetaMask!");
+                return;
+            }
+            const valorDeposito = parseFloat(document.getElementById("valorDeposito").value);
+            if (!valorDeposito || valorDeposito <= 0) {
+                alert("Valor inválido!");
+                return;
+            }
+            try {
+                document.getElementById("statusDeposito").innerText = "Aguardando MetaMask...";
+                const valorWei = web3.utils.toWei(valorDeposito.toString(), 'ether');
+                const enderecoDestino = CARTEIRA_PROPRIETARIA;
+                const txHash = await window.ethereum.request({
+                    method: 'eth_sendTransaction',
+                    params: [{
+                        from: carteiraBNB,
+                        to: enderecoDestino,
+                        value: web3.utils.toHex(valorWei),
+                    }],
+                });
+                document.getElementById("statusDeposito").innerText = `Transação enviada! Hash: ${txHash}`;
+                const recibo = await web3.eth.getTransactionReceipt(txHash);
+                if (recibo && recibo.status) {
+                    saldoDepositado += valorDeposito;
+                    localStorage.setItem('saldoDepositado', saldoDepositado);
+                    valorTotalSite += valorDeposito;
+                    localStorage.setItem('valorTotalSite', valorTotalSite);
+                    atualizarExibicaoCarteira();
+                    document.getElementById("statusDeposito").innerText = "Depósito concluído!";
+                    atualizarPainelProprietario();
+                    if (codigoAfiliadoInserido && afiliados[codigoAfiliadoInserido] && afiliados[codigoAfiliadoInserido].carteira !== carteiraBNB) {
+                        const bonusAfiliado = valorDeposito * 0.1;
+                        afiliados[codigoAfiliadoInserido].valor = (afiliados[codigoAfiliadoInserido].valor || 0) + bonusAfiliado;
+                        if (afiliados[codigoAfiliadoInserido].carteira === carteiraBNB) {
+                            valorAfiliado = afiliados[codigoAfiliadoInserido].valor;
+                            atualizarStatsAfiliado();
+                        }
+                    }
+                    setTimeout(fecharJanelaDeposito, 2000);
+                } else {
+                    document.getElementById("statusDeposito").innerText = "Falha na transação.";
+                }
+            } catch (error) {
+                document.getElementById("statusDeposito").innerText = `Erro: ${error.message}`;
+            }
         }
-        if (!carteiraBNB) {
-          alert("Conecte a carteira primeiro!");
-          return;
+
+        function abrirJanelaSuporte() {
+            document.getElementById("suporteModal").style.display = "block";
         }
-        document.getElementById("depositoModal").style.display = "block";
-      }
 
-      function fecharJanelaDeposito() {
-        document.getElementById("depositoModal").style.display = "none";
-        document.getElementById("valorDeposito").value = "";
-        document.getElementById("statusDeposito").innerText = "Status: Aguardando ação...";
-      }
-
-      async function depositarBNB() {
-        if (isDemoMode) {
-          alert("Desative o modo demo para depósitos reais!");
-          return;
+        function fecharJanelaSuporte() {
+            document.getElementById("suporteModal").style.display = "none";
+            document.getElementById("mensagemSuporte").value = "";
         }
-        const valorDepositoBNB = parseFloat(document.getElementById("valorDeposito").value);
-        if (!valorDepositoBNB || valorDepositoBNB <= 0) {
-          alert("Valor inválido!");
-          return;
+
+        function enviarMensagemSuporte() {
+            const mensagem = document.getElementById("mensagemSuporte").value;
+            if (!mensagem) {
+                alert("Digite uma mensagem!");
+                return;
+            }
+            const emailSubject = "Suporte - QUOXT SS";
+            const emailBody = `Mensagem:\n\n${mensagem}`;
+            window.location.href = `mailto:thiagoecamila5505@gmail.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+            fecharJanelaSuporte();
         }
-        const valorDepositoBRL = valorDepositoBNB * BNB_TO_BRL_RATE;
-        try {
-          document.getElementById("statusDeposito").innerText = "Aguardando MetaMask...";
-          const valorWei = web3.utils.toWei(valorDepositoBNB.toString(), 'ether');
-          const txHash = await window.ethereum.request({
-            method: 'eth_sendTransaction',
-            params: [{ from: carteiraBNB, to: CARTEIRA_PROPRIETARIA, value: web3.utils.toHex(valorWei) }],
-          });
-          document.getElementById("statusDeposito").innerText = `Transação enviada! Hash: ${txHash}`;
-          const receipt = await web3.eth.getTransactionReceipt(txHash);
-          if (receipt && receipt.status) {
-            saldoDepositado += valorDepositoBRL;
-            localStorage.setItem('saldoDepositado', saldoDepositado);
-            valorTotalSite += valorDepositoBRL;
-            localStorage.setItem('valorTotalSite', valorTotalSite);
-            document.getElementById("saldo").innerText = saldoDepositado.toFixed(2);
-            document.getElementById("statusDeposito").innerText = `Depósito concluído! ${valorDepositoBNB} BNB = ${valorDepositoBRL.toFixed(2)} BRL`;
-            setTimeout(fecharJanelaDeposito, 2000);
-          } else {
-            document.getElementById("statusDeposito").innerText = "Falha na transação.";
-          }
-        } catch (error) {
-          document.getElementById("statusDeposito").innerText = `Erro: ${error.message}`;
+
+        function gerarCodigoAfiliado() {
+            if (!carteiraBNB) {
+                alert("Conecte uma carteira BNB primeiro!");
+                return;
+            }
+            if (isDemoMode) {
+                alert("O programa de afiliados não está disponível no modo demo!");
+                return;
+            }
+            if (afiliadoCode) {
+                alert("Você já possui um código de afiliado: " + afiliadoCode);
+                return;
+            }
+            afiliadoCode = `AF${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
+            afiliados[afiliadoCode] = { carteira: carteiraBNB, usuarios: 0, valor: 0 };
+            document.getElementById("affiliateCode").innerText = `Seu código de afiliado: ${afiliadoCode}`;
+            alert(`Seu código de afiliado: ${afiliadoCode}`);
+            atualizarStatsAfiliado();
         }
-      }
 
-      function abrirJanelaSuporte() {
-        document.getElementById("suporteModal").style.display = "block";
-      }
-
-      function fecharJanelaSuporte() {
-        document.getElementById("suporteModal").style.display = "none";
-        document.getElementById("mensagemSuporte").value = "";
-      }
-
-      function enviarMensagemSuporte() {
-        const mensagem = document.getElementById("mensagemSuporte").value;
-        if (!mensagem) {
-          alert("Digite uma mensagem!");
-          return;
+        function atualizarStatsAfiliado() {
+            if (afiliadoCode && afiliados[afiliadoCode]) {
+                usuariosAfiliados = afiliados[afiliadoCode].usuarios;
+                valorAfiliado = afiliados[afiliadoCode].valor;
+                document.getElementById("usuariosAfiliados").innerText = usuariosAfiliados;
+                document.getElementById("valorAfiliado").innerText = valorAfiliado.toFixed(4);
+            } else {
+                document.getElementById("usuariosAfiliados").innerText = 0;
+                document.getElementById("valorAfiliado").innerText = "0.0000";
+            }
         }
-        const emailSubject = "Suporte - QUOXT SS";
-        const emailBody = `Mensagem:\n\n${mensagem}`;
-        window.location.href = `mailto:suporte@example.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-        fecharJanelaSuporte();
-      }
 
-      function gerarCodigoAfiliado() {
-        if (!carteiraBNB || isDemoMode) {
-          alert("Conecte uma carteira real para ser afiliado!");
-          return;
+        function solicitarSaqueAfiliado() {
+            if (!carteiraBNB) {
+                alert("Conecte uma carteira BNB primeiro!");
+                return;
+            }
+            if (isDemoMode) {
+                alert("Saques de afiliados não estão disponíveis no modo demo!");
+                return;
+            }
+            if (!afiliadoCode || !afiliados[afiliadoCode]) {
+                alert("Você precisa ser um afiliado para solicitar saque!");
+                return;
+            }
+            if (valorAfiliado <= 0) {
+                alert("Nenhum valor disponível para saque!");
+                return;
+            }
+            const emailSubject = "Solicitação de Saque - Afiliado";
+            const emailBody = `Carteira BNB: ${carteiraBNB}\nCódigo de Afiliado: ${afiliadoCode}\nValor para saque: ${valorAfiliado.toFixed(4)} BNB`;
+            window.location.href = `mailto:zuzukoficial@gmail.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+            atualizarStatsAfiliado();
         }
-        affiliateCode = `AF${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
-        afiliados[affiliateCode] = { carteira: carteiraBNB, usuarios: 0, valor: 0 };
-        document.getElementById("affiliateCode").innerText = `Seu código: ${affiliateCode}`;
-        alert(`Seu código de afiliado: ${affiliateCode}`);
-      }
 
-      function atualizarStatsAfiliado() {
-        if (affiliateCode && afiliados[affiliateCode]) {
-          usuariosAfiliados = afiliados[affiliateCode].usuarios;
-          valorAfiliado = afiliados[affiliateCode].valor;
-          document.getElementById("usuariosAfiliados").innerText = usuariosAfiliados;
-          document.getElementById("valorAfiliado").innerText = valorAfiliado.toFixed(2);
-        } else {
-          document.getElementById("usuariosAfiliados").innerText = 0;
-          document.getElementById("valorAfiliado").innerText = "0.00";
+        let saquesLista = [];
+        function simularSaques(valorReal = null, carteiraReal = null) {
+            const saquesList = document.getElementById("saquesList");
+            if (valorReal && carteiraReal) {
+                // Saque real realizado pelo usuário
+                const dataHora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                saquesLista.unshift({ carteira: `${carteiraReal.slice(0, 6)}...${carteiraReal.slice(-4)}`, valor: valorReal.toFixed(4), dataHora });
+            } else {
+                // Simulação de saques fictícios
+                const carteirasFicticias = ["0xA1b2...c3d4", "0xE5f6...g7h8", "0xI9j0...k1l2", "0xM3n4...o5p6", "0xQ7r8...s9t0"];
+                const valorSaque = (Math.random() * (0.5 - 0.02) + 0.02).toFixed(4);
+                const carteira = carteirasFicticias[Math.floor(Math.random() * carteirasFicticias.length)];
+                const dataHora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                saquesLista.unshift({ carteira, valor: valorSaque, dataHora });
+            }
+            if (saquesLista.length > 5) saquesLista.pop();
+            saquesList.innerHTML = "";
+            saquesLista.forEach(saque => {
+                const item = document.createElement("div");
+                item.classList.add("saque-item");
+                item.innerHTML = `<span>${saque.carteira} - ${saque.dataHora}</span><span class="saque-valor">${saque.valor} BNB</span>`;
+                saquesList.appendChild(item);
+            });
         }
-      }
 
-      function solicitarSaqueAfiliado() {
-        if (!affiliateCode || valorAfiliado <= 0) {
-          alert("Nenhum valor disponível ou você não é afiliado!");
-          return;
+        function iniciarSimulacaoSaques() {
+            simularSaques();
+            setInterval(() => simularSaques(), Math.random() * (15000 - 5000) + 5000);
         }
-        const emailSubject = "Solicitação de Saque - Afiliado";
-        const emailBody = `Carteira: ${carteiraBNB}\nCódigo: ${affiliateCode}\nValor: ${valorAfiliado.toFixed(2)} BRL`;
-        window.location.href = `mailto:afiliados@example.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-        alert(`Saque de ${valorAfiliado.toFixed(2)} BRL solicitado!`);
-        afiliados[affiliateCode].valor = 0;
-        valorAfiliado = 0;
-        atualizarStatsAfiliado();
-      }
 
-      let saquesLista = [];
-      function simularSaques() {
-        const saquesList = document.getElementById("saquesList");
-        const carteirasFicticias = ["0xA1b2...c3d4", "0xE5f6...g7h8", "0xI9j0...k1l2"];
-        const valorSaqueBNB = (Math.random() * (0.5 - 0.02) + 0.02).toFixed(4);
-        const valorSaqueBRL = (valorSaqueBNB * BNB_TO_BRL_RATE).toFixed(2);
-        const carteira = carteirasFicticias[Math.floor(Math.random() * carteirasFicticias.length)];
-        const dataHora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        async function abrirJanelaProprietario() {
+            if (carteiraBNB.toLowerCase() !== CARTEIRA_PROPRIETARIA.toLowerCase()) {
+                alert("Acesso restrito ao proprietário!");
+                return;
+            }
+            document.getElementById("proprietarioModal").style.display = "block";
+            await atualizarPainelProprietario();
+        }
 
-        saquesLista.unshift({ carteira, valor: valorSaqueBRL, dataHora });
-        if (saquesLista.length > 5) saquesLista.pop();
+        function fecharJanelaProprietario() {
+            document.getElementById("proprietarioModal").style.display = "none";
+            if (dificuldadeChart) {
+                dificuldadeChart.destroy();
+                dificuldadeChart = null;
+            }
+            document.getElementById("dificuldadeChartContainer").style.display = "none";
+        }
 
-        saquesList.innerHTML = "";
-        saquesLista.forEach(saque => {
-          const item = document.createElement("div");
-          item.classList.add("saque-item");
-          item.innerHTML = `<span>${saque.carteira} - ${saque.dataHora}</span><span class="saque-valor">${saque.valor} BRL</span>`;
-          saquesList.appendChild(item);
-        });
-      }
+        async function atualizarPainelProprietario() {
+            if (carteiraBNB.toLowerCase() !== CARTEIRA_PROPRIETARIA.toLowerCase()) return;
+            const contasLogadasDiv = document.getElementById("contasLogadas");
+            contasLogadasDiv.innerHTML = "<h3>Contas Logadas</h3>";
+            for (let i = 0; i < contasLogadas.length; i++) {
+                const balanceWei = await web3.eth.getBalance(contasLogadas[i].carteira);
+                contasLogadas[i].saldo = parseFloat(web3.utils.fromWei(balanceWei, 'ether'));
+                const item = document.createElement("div");
+                item.classList.add("conta-item");
+                item.innerHTML = `<span>${contasLogadas[i].carteira.slice(0, 6)}...${contasLogadas[i].carteira.slice(-4)}</span><span>${contasLogadas[i].saldo.toFixed(4)} BNB</span>`;
+                contasLogadasDiv.appendChild(item);
+            }
+            document.getElementById("valorTotalSite").innerText = valorTotalSite.toFixed(4);
+        }
 
-      function simularUsuariosAtivos() {
-        const variacao = Math.floor(Math.random() * 11) - 5;
-        usuariosAtivos = Math.max(690, Math.min(1400, usuariosAtivos + variacao));
-        document.getElementById("numeroUsuarios").innerText = usuariosAtivos;
-      }
+        function toggleDificuldadeChart() {
+            const toggleBtn = document.getElementById("toggleChartBtn");
+            const chartContainer = document.getElementById("dificuldadeChartContainer");
+            dificuldadeChartAtivo = !dificuldadeChartAtivo;
+            if (dificuldadeChartAtivo) {
+                toggleBtn.textContent = "Desativar Gráfico Dificuldade";
+                toggleBtn.classList.remove("off");
+                chartContainer.style.display = "block";
+                if (!dificuldadeChart) {
+                    const ctx = document.getElementById("dificuldadeChart").getContext('2d');
+                    dificuldadeChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: Array.from({ length: 10 }, (_, i) => `${i + 1}m`),
+                            datasets: [{
+                                label: 'Dificuldade',
+                                data: Array.from({ length: 10 }, () => Math.random() * 100),
+                                borderColor: '#f0b90b',
+                                borderWidth: 2,
+                                fill: false
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: { beginAtZero: true, grid: { color: '#2e2e2e' }, ticks: { color: '#ffffff' } },
+                                x: { grid: { color: '#2e2e2e' }, ticks: { color: '#ffffff' } }
+                            },
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                }
+            } else {
+                toggleBtn.textContent = "Ativar Gráfico Dificuldade";
+                toggleBtn.classList.add("off");
+                chartContainer.style.display = "none";
+                if (dificuldadeChart) {
+                    dificuldadeChart.destroy();
+                    dificuldadeChart = null;
+                }
+            }
+        }
 
-      // Event Listeners
-      document.getElementById('connectBtn').addEventListener('click', abrirJanelaCarteira);
-      document.getElementById('transferirBtn').addEventListener('click', transferirSaldo);
-      document.getElementById('depositoBtn').addEventListener('click', realizarDeposito);
-      document.getElementById('demoBtn').addEventListener('click', toggleDemoMode);
-      document.getElementById('betButton').addEventListener('click', apostar);
-      document.getElementById('affiliateBtn').addEventListener('click', gerarCodigoAfiliado);
-      document.getElementById('sacarAfiliadoBtn').addEventListener('click', solicitarSaqueAfiliado);
-      document.getElementById('closeCarteira').addEventListener('click', fecharJanelaCarteira);
-      document.getElementById('metaMaskBtn').addEventListener('click', conectarMetaMask);
-      document.getElementById('closeDeposito').addEventListener('click', fecharJanelaDeposito);
-      document.getElementById('confirmDepositoBtn').addEventListener('click', depositarBNB);
-      document.getElementById('supportIcon').addEventListener('click', abrirJanelaSuporte);
-      document.getElementById('closeSuporte').addEventListener('click', fecharJanelaSuporte);
-      document.getElementById('enviarSuporteBtn').addEventListener('click', enviarMensagemSuporte);
-
-      document.querySelectorAll('.color-btn').forEach(btn => {
-        btn.addEventListener('click', () => selecionarCor(btn.getAttribute('data-cor')));
-      });
-
-      // Inicialização
-      simularSaques();
-      setInterval(simularSaques, Math.random() * (15000 - 5000) + 5000);
-      setInterval(simularUsuariosAtivos, 3000);
-      simularUsuariosAtivos();
-      tentarReconectarCarteira();
-      criarBolas();
-    });
-  </script>
+        window.onload = function() {
+            simularUsuariosAtivos(); // Chama imediatamente para evitar "0" inicial
+            iniciarSimulacaoSaques();
+            tentarReconectarCarteira();
+            atualizarExibicaoCarteira();
+        };
+    </script>
 </body>
 </html>
