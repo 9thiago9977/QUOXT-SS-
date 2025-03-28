@@ -120,7 +120,7 @@
                     <p id="saldoReal">Saldo Real: <span>0.0000 BNB (R$ 0.00)</span></p>
                     <p id="saldoDemo">Saldo Demo: <span>0.0000 BNB (R$ 0.00)</span></p>
                 </div>
-                <p>Valor da aposta: <input type="number" id="valorAposta" min="0.001" max="100" value="0.001" step="0.001"></p>
+                <p>Valor da aposta: <input type="number" id="valorAposta" min="0.0001" max="100" value="0.0001" step="0.0001"></p>
                 <p>Tempo de expiração:<select id="tempoExpiracao">
                     <option value="30">30s</option>
                     <option value="60" selected>1m</option>
@@ -134,7 +134,6 @@
                 </div>
                 <div id="resultado">Resultado: Aguardando aposta...</div>
                 <div id="tempoRestante">Tempo restante: 1:00</div>
-                <div id="usuáriosAtivos">Usuários ativos: <span id="numeroUsuários">0</span></div>
                 <div class="saques-window">
                 
                     <div class="saques-list" id="saquesList"></div>
@@ -219,7 +218,6 @@
         let saldoDepositado = localStorage.getItem('saldoDepositado') ? parseFloat(localStorage.getItem('saldoDepositado')) : 0;
         let saldoDemo = 0;
         let tempoRestante = 60;
-        let usuáriosAtivos = 1000;
         const MINIMO_SAQUE = 0.023479184927942306;
         const SALDO_INICIAL_DEMO = 10;
         const BONUS_PRIMEIRO_LOGIN = 0.004; // R$ 10 / R$ 2500 por BNB = 0.004 BNB
